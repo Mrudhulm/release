@@ -1,0 +1,40 @@
+parameters:
+  - name: mainBranch
+    type: string
+    default: 'main'
+  - name: featureBranch
+    type: string
+    default: 'feature/xxx'
+  - name: projectType
+    type: string
+    default: 'backend'
+  - name: pushRelease
+    type: boolean
+    default: false
+
+jobs:
+  - job: CheckVersionChanges
+    displayName: 'Check for Version Changes'
+    pool: Default
+    steps:
+      - checkout: self
+        persistCredentials: true
+        fetchDepth: 0
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.11'
+          addToPath: true
+
+      - script: |
+          echo "Checking versions (main=${{ parameters.mainBranch }}, feature=${{ parameters.featureBranch }})"
+          if command -v dagger >/dev/null 2>&1; then
+            dagger run cicd/shared/dagger-call.yml
+          else
+            FEATURE_BRANCH="${{ parameters.featureBranch }}" \
+            MAIN_BRANCH="${{ parameters.mainBranch }}" \
+            PROJECT_TYPE="${{ parameters.projectType }}" \
+            PUSH_RELEASE_BRANCH="${{ parameters.pushRelease }}" \
+            python3 -u daggerpipeline/dagger-release.py
+          fi
+        displayName: 'Run dagger-release'

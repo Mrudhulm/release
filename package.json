@@ -1,0 +1,13 @@
+{
+  "name": "release-automation",
+  "version": "1.0.0",
+  "description": "A project to automate release version checks and branch creation.",
+  "main": "src/checker.py",
+  "scripts": {
+    "check-versions": "python src/checker.py"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}

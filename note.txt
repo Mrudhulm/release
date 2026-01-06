@@ -1,0 +1,74 @@
+cd /Users/aiml/Documents/azure_repo/releasepipeline-cicd/releasepipeline-cicd/
+
+For Frontend:
+
+Bash
+
+dagger -m .dagger call check-and-release \
+  --source=. \
+  --token=env:GITHUB_TOKEN \
+  --prod-repo="dev.azure.com/mrudhulm/DevSecOps/_git/frontend" \
+  --source-branch="feature/frontend-jirra"
+For Backend:
+
+Bash
+
+dagger -m .dagger call check-and-release \
+  --source=. \
+  --token=env:GITHUB_TOKEN_BACKEND \
+  --prod-repo="dev.azure.com/mrudhulm/DevSecOps/_git/backend" \
+  --source-branch="feature/backend-jira"
+
+
+############
+
+
+cd /Users/aiml/Documents/azure_repo/releasepipeline-cicd/releasepipeline-cicd/
+dagger call -m .dagger check-and-release --source=. --token=env:GITHUB_TOKEN
+
+dagger -m .dagger functions
+
+
+
+
+dagger -m .dagger call check-and-release \
+  --source=. \
+  --token=env:GITHUB_TOKEN \
+  --user-name="mrudhulm" \
+  --ticket-id="frontend-jirra" \
+  --prod-repo="dev.azure.com/mrudhulm/DevSecOps/_git/frontend" \
+  --source-branch="feature/frontend-jirra" \
+  --default-prod-repo="main"
+
+
+  dagger -m .dagger call check-and-release \
+  --source=. \
+  --token=env:GITHUB_TOKEN \
+  --user-name="mrudhulm" \
+  --ticket-id="frontend-jirra" \
+  --prod-repo="dev.azure.com/mrudhulm/DevSecOps/_git/frontend" \
+  --source-branch="feature/frontend-jirra" \
+  --default-prod-repo="main"
+
+dagger call check-and-release \
+  --source=. \
+  --token=env:GITHUB_TOKEN
+
+Backend
+# 1. Set your backend secret
+export GITHUB_TOKEN_BACKEND="REDACTED_REMOVED_FROM_HISTORY"
+
+# 2. Execute the Dagger call
+dagger -m .dagger call check-and-release \
+  --source=. \
+  --token=env:GITHUB_TOKEN_BACKEND \
+  --user-name="mrudhulm" \
+  --prod-repo="dev.azure.com/mrudhulm/DevSecOps/_git/backend" \
+  --source-branch="feature/backend-jira" \
+  --default-prod-branch="main"
+
+
+  : String! 2.3s ERROR
+✘ withExec git tag v0.1.1 0.1s ERROR
+fatal: tag 'v0.1.1' already exists                                                                               
+! exit code: 128

@@ -1,0 +1,11 @@
+client:
+  host: docker
+
+pipeline:
+  releasenote:
+    container_echo:
+      string_arg: "Hello from Azure DevOps"
+
+    grep_dir:
+      directory_arg: "{{dag.directory('.')}}"
+      pattern: "version"

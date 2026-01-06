@@ -1,0 +1,48 @@
+parameters:
+  - name: mainBranch
+    type: string
+    default: 'main'
+
+  - name: featureBranch
+    type: string
+    default: 'feature/xxx'
+
+  - name: projectType
+    type: string
+    default: 'backend'
+
+  - name: pushRelease
+    type: boolean
+    default: false
+
+  - name: projectPaths
+    type: string
+    default: 'services/backend,services/frontend'
+
+
+jobs:
+  - job: CheckVersionChanges
+    displayName: 'Check for Version Changes'
+    pool: Default
+
+    steps:
+      - checkout: self
+        persistCredentials: true
+        fetchDepth: 0
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.11'
+          addToPath: true
+
+      - script: |
+          echo "Running Dagger release pipeline"
+          echo "Main branch: ${{ parameters.mainBranch }}"
+          echo "Feature branch: ${{ parameters.featureBranch }}"
+          echo "Project type: ${{ parameters.projectType }}"
+          echo "Project paths: ${{ parameters.projectPaths }}"
+          echo "Push release: ${{ parameters.pushRelease }}"
+
+          echo "Executing Dagger module..."
+          dagger run cicd/shared/dagger-call.yml
+        displayName: "Run Dagger Releasenote Module"

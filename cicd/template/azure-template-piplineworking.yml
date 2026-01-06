@@ -1,0 +1,48 @@
+trigger: none 
+
+parameters:
+  - name: service
+    displayName: "Project to Release"
+    type: string
+    default: frontend
+    values:
+      - frontend
+      - backend
+  - name: sourceBranch
+    displayName: "Feature Branch (e.g., feature/frontend-jirra)"
+    type: string
+    default: 'feature/frontend-jirra'
+
+variables:
+  - group: 'Release-Secrets'
+  - name: USER_NAME
+    value: 'mrudhulm'
+  - name: BASE_URL
+    value: 'dev.azure.com/mrudhulm/DevSecOps/_git'
+
+pool: Default 
+
+steps:
+  - script: |
+      # 1. Map the correct secret to a standard variable
+      if [[ "${{ parameters.service }}" == "backend" ]]; then
+        echo "##[section]Switching to Backend Context"
+        export APP_TOKEN=$GITHUB_TOKEN_BACKEND
+      else
+        echo "##[section]Switching to Frontend Context"
+        export APP_TOKEN=$GITHUB_TOKEN
+      fi
+
+      # 2. Run the EXACT command that worked locally
+      # We use $(Build.SourcesDirectory) to satisfy the --source flag
+      dagger -m .dagger call check-and-release \
+        --source=. \
+        --token=env:APP_TOKEN \
+        --user-name="$(USER_NAME)" \
+        --prod-repo="$(BASE_URL)/${{ parameters.service }}" \
+        --source-branch="${{ parameters.sourceBranch }}" \
+        --default-prod-branch="main"
+    displayName: 'Run Dagger Release'
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      GITHUB_TOKEN_BACKEND: $(GITHUB_TOKEN_BACKEND)

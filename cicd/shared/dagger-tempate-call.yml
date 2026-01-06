@@ -1,0 +1,27 @@
+version: '2.0'
+
+steps:
+  - name: Run release script
+    run: |
+      set -euo pipefail
+      echo "Running dagger-release.py"
+      # Use environment variables passed by dagger or CI
+      python3 -u daggerpipeline/dagger-release.py
+
+  - name: Capture output
+    run: |
+      set -e
+      # dagger-release.py prints JSON; save for downstream jobs
+      python3 - <<'PY'
+import sys, subprocess, json
+try:
+    p = subprocess.run(['python3','-u','daggerpipeline/dagger-release.py'], capture_output=True, text=True)
+    out = p.stdout.strip() or p.stderr.strip()
+    print(out)
+    with open('dagger_release_output.json','w') as f:
+        f.write(out or '{}')
+except Exception as e:
+    print(json.dumps({'error': str(e)}))
+    with open('dagger_release_output.json','w') as f:
+        f.write(json.dumps({'error': str(e)}))
+PY

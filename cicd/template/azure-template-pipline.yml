@@ -1,0 +1,91 @@
+trigger: none
+
+parameters:
+  - name: service
+    displayName: "Select Service"
+    type: string
+    default: frontend
+    values: [frontend, backend]
+  - name: sourceBranch
+    displayName: "Branch Name"
+    type: string
+    default: 'feature/FRONT-101-jirra'
+
+variables:
+  - group: 'Release-Secrets'
+  - name: USER_NAME
+    value: 'mrudhulm'
+  - name: BASE_URL
+    value: 'dev.azure.com/mrudhulm/DevSecOps/_git'
+
+pool: Default
+
+stages:
+- stage: Validate
+  displayName: "Step 1: Version Check"
+  jobs:
+  - job: Check
+    steps:
+      - checkout: self
+      - script: echo "Validating branch ${{ parameters.sourceBranch }}..."
+        displayName: "Pre-validation"
+
+- stage: Deploy
+  displayName: "Step 2: Release & Notify"
+  dependsOn: Validate
+  condition: succeeded()
+  jobs:
+  - deployment: ReleasePush
+    environment: 'Production' # Approval Gate
+    pool: Default
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+              persistCredentials: true
+            - script: |
+                # 1. Setup Auth
+                if [[ "${{ parameters.service }}" == "backend" ]]; then
+                  export TOKEN=$GITHUB_TOKEN_BACKEND
+                else
+                  export TOKEN=$GITHUB_TOKEN
+                fi
+
+                # 2. Run Dagger
+                dagger -m .dagger call check-and-release \
+                  --source=. \
+                  --token=env:TOKEN \
+                  --user-name="$(USER_NAME)" \
+                  --prod-repo="$(BASE_URL)/${{ parameters.service }}" \
+                  --source-branch="${{ parameters.sourceBranch }}" \
+                  --jira-mode="mock"
+                
+                # 3. Verify and Extract Version for Notification
+                # Checking both potential version files
+                if [ -f "package.json" ]; then
+                  VERSION=$(grep -m 1 '"version":' package.json | awk -F '"' '{print $4}')
+                elif [ -f "pyproject.toml" ]; then
+                  VERSION=$(grep -m 1 'version =' pyproject.toml | awk -F '"' '{print $2}')
+                fi
+                
+                TAG="v$VERSION"
+                
+                # Check remote tag
+                if git ls-remote --tags https://$(USER_NAME):$TOKEN@$(BASE_URL)/${{ parameters.service }} | grep -q "refs/tags/$TAG"; then
+                  echo "##[section]Confirmed: $TAG is live."
+                  
+                  # 4. SEND NOTIFICATION (Fixed the parameters typo here)
+                  MESSAGE="🚀 *Release Successful!* \n *Project:* ${{ parameters.service }} \n *Version:* $TAG \n *Branch:* ${{ parameters.sourceBranch }} \n *Repo:* https://$(BASE_URL)/${{ parameters.service }}"
+                  
+                  curl -X POST -H 'Content-type: application/json' \
+                  --data "{\"text\":\"$MESSAGE\"}" $(RELEASE_WEBHOOK_URL)
+                else
+                  echo "##[error]Tag verification failed. Tag $TAG not found on remote."
+                  exit 1
+                fi
+              displayName: "Release, Verify and Notify"
+              env:
+                GITHUB_TOKEN: $(GITHUB_TOKEN)
+                GITHUB_TOKEN_BACKEND: $(GITHUB_TOKEN_BACKEND)
+                RELEASE_WEBHOOK_URL: $(RELEASE_WEBHOOK_URL)

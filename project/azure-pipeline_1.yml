@@ -1,0 +1,28 @@
+resources:
+  repositories:
+    - repository: cicd
+      type: git
+      name: DevSecOps/releasepipeline-cicd
+
+parameters:
+  - name: sourceBranch
+    type: string
+    default: 'main'
+  - name: destinationBranch
+    type: string
+    default: 'feature/xxx'
+  - name: projectType
+    type: string
+    default: 'backend'
+  - name: pushRelease
+    type: boolean
+    default: false
+
+jobs:
+  - template: cicd/template/azure-template-pipline.yml@cicd
+    parameters:
+      mainBranch: ${{ parameters.sourceBranch }}
+      featureBranch: ${{ parameters.destinationBranch }}
+      projectType: ${{ parameters.projectType }}
+      pushRelease: ${{ parameters.pushRelease }}
+      versionBump: 'patch'

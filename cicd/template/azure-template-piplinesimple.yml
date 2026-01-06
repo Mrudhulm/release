@@ -1,0 +1,43 @@
+trigger:
+  branches:
+    include:
+      - feature/*
+      - develop
+
+variables:
+  # Reference your variable group for secrets
+  - group: 'Release-Secrets' 
+  - name: USER_NAME
+    value: 'mrudhulm'
+  - name: PROD_REPO
+    value: 'dev.azure.com/mrudhulm/DevSecOps/_git/$(Build.Repository.Name)'
+
+pool: Default
+
+steps:
+  # # 1. Install Dagger CLI
+  # - script: |
+  #     curl -L https://dl.dagger.io/dagger/install.sh | sh
+  #     sudo mv bin/dagger /usr/local/bin/
+  #   displayName: 'Install Dagger'
+
+  # 2. Run the Dagger Release Module
+  - script: |
+      # Use the appropriate token based on the repo name
+      if [[ "$(Build.Repository.Name)" == *"backend"* ]]; then
+        export APP_TOKEN=$(GITHUB_TOKEN_BACKEND)
+      else
+        export APP_TOKEN=$(GITHUB_TOKEN)
+      fi
+
+      dagger -m .dagger call check-and-release \
+        --source=. \
+        --token=env:APP_TOKEN \
+        --user-name="$(USER_NAME)" \
+        --prod-repo="$(PROD_REPO)" \
+        --source-branch="$(Build.SourceBranchName)" \
+        --default-prod-branch="main"
+    displayName: 'Run Dagger Release Logic'
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN) # Secret from Variable Group
+      GITHUB_TOKEN_BACKEND: $(GITHUB_TOKEN_BACKEND) # Secret from Variable Group

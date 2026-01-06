@@ -1,0 +1,43 @@
+docker build -t jira-mock .
+
+docker run -d -p 3000:3000 jira-mock
+
+curl http://localhost:3000/issues
+
+curl -X POST http://localhost:3000/issues \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "FRONT-103",
+    "summary": "Create release pipeline",
+    "status": "To Do",
+    "type": "Story",
+    "fixVersion": "0.1.2"
+  }'
+
+  curl "http://localhost:3000/issues?key=FRONT-103"
+
+
+  curl -s -X POST http://localhost:3000/issues \
+  -H "Content-Type: application/json" \
+  -d "$(cat <<EOF
+{
+  "key": "FRONT-104",
+  "summary": "Automate version bump",
+  "status": "Done",
+  "type": "Task"
+}
+EOF
+)"
+
+
+feature/FRONT-104
+        ↓
+Dagger pipeline
+        ↓
+Extract FRONT-104
+        ↓
+GET /issues?key=FRONT-104
+        ↓
+Generate release notes
+        ↓
+Create release branch

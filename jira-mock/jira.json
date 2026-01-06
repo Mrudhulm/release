@@ -1,0 +1,19 @@
+{
+  "issues": [
+    {
+      "id": 1,
+      "key": "FRONT-101",
+      "summary": "Frontend version bump",
+      "status": "Done",
+      "type": "Story",
+      "fixVersion": "0.1.2"
+    },
+    {
+      "id": 2,
+      "key": "FRONT-102",
+      "summary": "Release pipeline automation",
+      "status": "In Progress",
+      "type": "Task"
+    }
+  ]
+}
