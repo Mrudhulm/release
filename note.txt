@@ -46,7 +46,7 @@ dagger -m .dagger call check-and-release \
   --token=env:GITHUB_TOKEN \
   --user-name="mrudhulm" \
   --ticket-id="frontend-jirra" \
-  --prod-repo="dev.azure.com/mrudhulm/DevSecOps/_git/frontend" \
+  --prod-repo="dev.azure.com/mrudhulxxxxxxxxxxxx/DevSecOps/_git/frontend" \
   --source-branch="feature/frontend-jirra" \
   --default-prod-repo="main"
 
@@ -67,8 +67,3 @@ dagger -m .dagger call check-and-release \
   --source-branch="feature/backend-jira" \
   --default-prod-branch="main"
 
-
-  : String! 2.3s ERROR
-✘ withExec git tag v0.1.1 0.1s ERROR
-fatal: tag 'v0.1.1' already exists                                                                               
-! exit code: 128
